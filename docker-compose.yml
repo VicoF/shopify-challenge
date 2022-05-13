@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  database:
+    image: postgres:latest
+    ports: ["5433:5432"]
+
+    environment:
+        POSTGRES_USER: postgres # The PostgreSQL user (useful to connect to the database)
+        POSTGRES_PASSWORD: postgres # The PostgreSQL password (useful to connect to the database)
+        POSTGRES_DB: inventauraus # The PostgreSQL default database (automatically created at first launch)
+    
+  nextapp:
+    build:
+      context: ./inventaurus
+    ports:
+      - "3000:3000"
+  
