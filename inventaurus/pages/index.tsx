@@ -30,6 +30,10 @@ export default function Home() {
                 item.description || "This item has no description",
                 item.quantity,
               ]}
+              onDelete={() => {
+                fetch(`/api/item/${item.id}`, { method: "DELETE" }).then(() =>
+                  fetchItems()
+                );
               }}
             />
           ) : null
