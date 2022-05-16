@@ -1,3 +1,4 @@
+import { time } from 'console';
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '../../../lib/prisma';
 
@@ -17,11 +18,11 @@ export default async function handler(req : NextApiRequest, res:NextApiResponse)
       return
     }
     case 'DELETE':
-      await prisma.item.delete({where: {id: String(id)}});
+      await prisma.item.update({where: {id: String(id)} , data: {deletedAt: new Date(), deleteComment: req.body.deleteComment}});
       res.status(200).end();
       return;
     default:
-      res.setHeader('Allow', ['GET', 'PUT'])
+      res.setHeader('Allow', ['GET', 'POST', 'DELETE'])
       res.status(405).end(`Method ${req.method} Not Allowed`)
   }
 }
