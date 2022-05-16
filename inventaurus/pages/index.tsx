@@ -1,6 +1,7 @@
 import { Item } from "@prisma/client";
 import { useEffect, useState } from "react";
 import TableItem from "../components/TableItem";
+import TableRow from "../components/TableRow";
 
 export default function Home() {
   const [items, setItems] = useState<Array<Item>>([]);
@@ -21,39 +22,66 @@ export default function Home() {
     fetchItems();
   }, [seeDeleted]);
 
-  async function addItem(values: Array<String>) {
+  async function addItem(item: Item) {
+    setIsAdding(false);
     await fetch("/api/item", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        name: values[0],
-        description: values[1],
-        quantity: Number(values[2]),
-      }),
+      body: JSON.stringify(item),
     });
     fetchItems();
-    setIsAdding(false);
   }
 
-  async function onDelete(item) {
-    if (confirm(`Are you sure that you want to delete ${item.name}?`)) {
+  async function onDelete(item: Item) {
+    const deleteComment = prompt(
+      `Please enter a comment for the deletion of ${item.name}`
+    );
+    if (deleteComment != null) {
       fetch(`/api/item/${item.id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          deleteComment,
+        }),
       }).then(() => fetchItems());
     }
   }
 
+  async function onSave(item: Item) {
+    fetch(`/api/item/${item.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item),
+    }).then(fetchItems);
+  }
+
+  async function onUndelete(item: Item) {
+    fetch(`/api/item/${item.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...item,
+        deletedAt: null,
+        deleteComment: null,
+      }),
+    }).then(fetchItems);
+  }
+
+  function switchIsAdding() {
+    setIsAdding(!isAdding);
+  }
+
+  function switchSeeDeleted() {
+    setSeeDeleted(!seeDeleted);
+  }
+
   return (
     <div>
-      <input
-        type="checkbox"
-        id="see_deleted"
-        onClick={() => {
-          setSeeDeleted(!seeDeleted);
-        }}
-      />
+      <input type="checkbox" id="see_deleted" onClick={switchSeeDeleted} />
       <label htmlFor="see_deleted">See deleted items</label>
       <table>
         <thead>
@@ -61,56 +89,23 @@ export default function Home() {
             <th>Name</th>
             <th>Description</th>
             <th>Quantity</th>
+            {seeDeleted && <th>Delete comment</th>}
           </tr>
         </thead>
         <tbody>
           {items.map((item, index) => (
-            <TableItem
+            <TableRow
               key={"TableItem" + index}
-              editable
-              values={[
-                item.name,
-                item.description || "This item doesn't have a description",
-                String(item.quantity),
-              ]}
-              onDelete={() => onDelete({ ...item })}
-              onSave={(values) => {
-                fetch(`/api/item/${item.id}`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    id: item.id,
-                    name: values[0],
-                    description: values[1],
-                    quantity: Number(values[2]),
-                  }),
-                }).then(() => fetchItems());
-              }}
+              item={item}
+              onDelete={onDelete}
+              onSave={onSave}
+              onUndelete={onUndelete}
             />
           ))}
-          {isAdding ? (
-            <TableItem
-              editable
-              values={["", "", ""]}
-              onSave={addItem}
-              isEditingDefault
-            ></TableItem>
-          ) : null}
+          {isAdding && <TableRow isEditing onSave={addItem} />}
         </tbody>
-        <tfoot>
-          <tr>
-            <td>
-              <button
-                onClick={() => {
-                  setIsAdding(true);
-                }}
-              >
-                Add Item
-              </button>
-            </td>
-          </tr>
-        </tfoot>
       </table>
+      <button onClick={switchIsAdding}>Add Item</button>
     </div>
   );
 }
