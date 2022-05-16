@@ -1,8 +1,11 @@
+import { Item } from "@prisma/client";
 import { useEffect, useState } from "react";
 import TableItem from "../components/TableItem";
 
 export default function Home() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<Array<Item>>([]);
+  const [isAdding, setIsAdding] = useState(false);
+
   async function fetchItems() {
     const res = await fetch("/api/item");
     setItems(await res.json());
@@ -11,6 +14,30 @@ export default function Home() {
   useEffect(() => {
     fetchItems();
   }, []);
+
+  async function addItem(values: Array<String>) {
+    await fetch("/api/item", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: values[0],
+        description: values[1],
+        quantity: Number(values[2]),
+      }),
+    });
+    fetchItems();
+    setIsAdding(false);
+  }
+
+  async function onDelete(item) {
+    if (confirm(`Are you sure that you want to delete ${item.name}?`)) {
+      fetch(`/api/item/${item.id}`, {
+        method: "DELETE",
+      }).then(() => fetchItems());
+    }
+  }
 
   return (
     <table>
@@ -22,26 +49,50 @@ export default function Home() {
         </tr>
       </thead>
       <tbody>
-        {items?.map((item) =>
-          item ? (
-            <TableItem
-              values={[
-                item.name,
-                item.description || "This item has no description",
-                item.quantity,
-              ]}
-              onDelete={() => {
-                fetch(`/api/item/${item.id}`, { method: "DELETE" }).then(() =>
-                  fetchItems()
-                );
-              }}
-            />
-          ) : null
-        )}
+        {items.map((item, index) => (
+          <TableItem
+            key={"TableItem" + index}
+            editable
+            values={[
+              item.name,
+              item.description || "This item doesn't have a description",
+              String(item.quantity),
+            ]}
+            onDelete={() => onDelete({ ...item })}
+            onSave={(values) => {
+              fetch(`/api/item/${item.id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  id: item.id,
+                  name: values[0],
+                  description: values[1],
+                  quantity: Number(values[2]),
+                }),
+              }).then(() => fetchItems());
+            }}
+          />
+        ))}
+        {isAdding ? (
+          <TableItem
+            editable
+            values={["", "", ""]}
+            onSave={addItem}
+            isEditingDefault
+          ></TableItem>
+        ) : null}
       </tbody>
       <tfoot>
         <tr>
-          <button>Add Item</button>
+          <td>
+            <button
+              onClick={() => {
+                setIsAdding(true);
+              }}
+            >
+              Add Item
+            </button>
+          </td>
         </tr>
       </tfoot>
     </table>

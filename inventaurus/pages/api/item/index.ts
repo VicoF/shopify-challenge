@@ -8,11 +8,11 @@ export default async function handler(req : NextApiRequest, res:NextApiResponse)
       const items = await prisma.item.findMany();
       res.status(200).json(items);
       return;
-    case 'POST':
+    case 'PUT':
       // TODO validation
       const item = req.body;
-      prisma.item.upsert(item)
-      res.status(200);
+      const returnedItem = await prisma.item.create({data:item})
+      res.status(200).json(returnedItem);
       return;
     default:
       res.setHeader('Allow', ['GET', 'PUT'])
