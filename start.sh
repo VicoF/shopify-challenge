@@ -15,4 +15,4 @@ psql -h 127.0.0.1 -c "create database inventaurus;"
 
 cd inventaurus
 npx yarn install --frozen-lockfile
-./start.sh
+sh ./start.sh

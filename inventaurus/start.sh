@@ -1,3 +1,3 @@
 npx prisma db push
 npx prisma generate
-yarn dev
+npx yarn dev
