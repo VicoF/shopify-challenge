@@ -5,4 +5,4 @@ USER root
 COPY ./ ./
 RUN yarn install --frozen-lockfile
 
-CMD ["yarn", "dev"]
+CMD ["./start.sh"]
