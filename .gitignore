@@ -128,4 +128,4 @@ dist
 
 # replit
 data/
-postgres/*+
+postgres/*
