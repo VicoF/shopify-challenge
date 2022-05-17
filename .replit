@@ -1,0 +1,5 @@
+language = "nix"
+run = "sh start.sh"
+[env]
+PGDATA = "/home/runner/${REPL_SLUG}/data"
+DATABASE_URL = "postgresql://runner@127.0.0.1:5432/inventaurus?schema=public"

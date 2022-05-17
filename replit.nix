@@ -1,5 +1,6 @@
 { pkgs }: {
     deps = [
-        pkgs.docker
+        pkgs.postgresql
+        pkgs.nodejs-16_x
     ];
 }
