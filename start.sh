@@ -15,6 +15,4 @@ psql -h 127.0.0.1 -c "create database inventaurus;"
 
 cd inventaurus
 npx yarn install --frozen-lockfile
-npx prisma db push
-npx prisma generate
-npx yarn dev
+./start.sh
